@@ -1,0 +1,62 @@
+@import "tailwindcss";
+@import "./styles/tokens.css";
+
+@theme {
+  --color-brand-navy: var(--color-brand-navy);
+  --color-brand-navy-dark: var(--color-brand-navy-dark);
+  --color-brand-cyan: var(--color-brand-cyan);
+  --color-brand-cyan-hover: var(--color-brand-cyan-hover);
+  --color-brand-cyan-soft: var(--color-brand-cyan-soft);
+  --color-brand-bg: var(--color-brand-bg);
+  --color-brand-card: var(--color-brand-card);
+  --color-brand-muted: var(--color-brand-muted);
+  --color-brand-muted-light: var(--color-brand-muted-light);
+  --color-brand-border: var(--color-brand-border);
+  --color-brand-border-dark: var(--color-brand-border-dark);
+  --color-brand-chip: var(--color-brand-chip);
+  --color-brand-chip-hover: var(--color-brand-chip-hover);
+  --color-brand-white: var(--color-brand-white);
+
+  --font-sans: var(--font-sans);
+  --font-arabic: var(--font-arabic);
+  --font-mono: var(--font-mono);
+
+  --shadow-brand-sm: var(--shadow-brand-sm);
+  --shadow-brand-md: var(--shadow-brand-md);
+  --shadow-brand-lg: var(--shadow-brand-lg);
+  --shadow-brand-xl: var(--shadow-brand-xl);
+  --shadow-card: var(--shadow-card);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--color-brand-bg);
+  color: var(--color-brand-navy);
+  font-family: var(--font-sans);
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+[dir="rtl"] body {
+  font-family: var(--font-arabic);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto !important;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
