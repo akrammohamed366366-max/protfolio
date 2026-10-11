@@ -1,14 +1,11 @@
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
-import { defineConfig, loadEnv } from 'vite';
+import { defineConfig } from 'vite';
 
-export default defineConfig(({ mode }) => {
-  const env = loadEnv(mode, process.cwd(), '');
-  const base = process.env.VITE_BASE || env.VITE_BASE || '/REPO_NAME/';
-
+export default defineConfig(() => {
   return {
-    base,
+    base: './',
     plugins: [react(), tailwindcss()],
     resolve: {
       alias: {

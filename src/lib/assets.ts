@@ -13,8 +13,13 @@ export function resolveAssetUrl(url: string | undefined): string {
   ) {
     return trimmed;
   }
-  const base = import.meta.env.BASE_URL || '/';
-  const cleanPath = trimmed.startsWith('/') ? trimmed.slice(1) : trimmed;
+  const base = import.meta.env.BASE_URL || './';
+  let cleanPath = trimmed;
+  if (cleanPath.startsWith('./')) {
+    cleanPath = cleanPath.slice(2);
+  } else if (cleanPath.startsWith('/')) {
+    cleanPath = cleanPath.slice(1);
+  }
   const cleanBase = base.endsWith('/') ? base : `${base}/`;
   return `${cleanBase}${cleanPath}`;
 }

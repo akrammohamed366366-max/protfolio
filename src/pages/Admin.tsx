@@ -19,7 +19,7 @@ import {
   serverTimestamp,
   writeBatch,
 } from 'firebase/firestore';
-import { auth, db, isFirebaseConfigured } from '../lib/firebase';
+import { auth, db, isFirebaseConfigured, activeProjectId } from '../lib/firebase';
 import { ADMIN_UID } from '../config';
 import { site, ProjectItem } from '../content/site';
 import { seedDefaultProjects } from '../lib/seed';
@@ -637,10 +637,15 @@ export const Admin: React.FC = () => {
             {t('admin.signInDescription')}
           </p>
 
-          {!isFirebaseConfigured && (
-            <div className="mb-6 p-3.5 rounded-lg bg-brand-chip border border-brand-border text-xs text-brand-muted text-start leading-relaxed">
-              <strong className="text-brand-navy block mb-1">{t('admin.configMissingTitle')}</strong>
-              {t('admin.configMissingDesc')}
+          {(!isFirebaseConfigured || !auth) && (
+            <div className="mb-6 p-3.5 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-900 text-start leading-relaxed space-y-1">
+              <div className="flex items-center gap-1.5 font-semibold text-amber-950">
+                <svg className="w-4 h-4 flex-shrink-0 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+                <span>{t('admin.configMissingTitle')}</span>
+              </div>
+              <p className="text-amber-800">{t('admin.configMissingDesc')}</p>
             </div>
           )}
 
@@ -743,7 +748,7 @@ export const Admin: React.FC = () => {
 
             <button
               type="submit"
-              disabled={isSigningIn || isResettingPassword || !isFirebaseConfigured}
+              disabled={isSigningIn || isResettingPassword || !isFirebaseConfigured || !auth}
               className="w-full mt-2 py-3 px-4 rounded-xl bg-brand-navy hover:bg-brand-navy-dark text-brand-white font-medium text-sm transition-all duration-200 flex items-center justify-center gap-2 shadow-brand-sm disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
             >
               {isSigningIn ? (
@@ -847,7 +852,19 @@ export const Admin: React.FC = () => {
             </div>
             <div className="flex flex-col text-start">
               <span className="font-bold text-sm text-brand-navy leading-none">{t('admin.brandTitle')}</span>
-              <span className="text-[11px] font-mono text-brand-muted mt-1 leading-none">{t('admin.portalSubtitle')}</span>
+              <div className="flex items-center gap-2 mt-1 flex-wrap">
+                <span className="text-[11px] font-mono text-brand-muted leading-none">{t('admin.portalSubtitle')}</span>
+                <span className="text-brand-border text-xs leading-none">•</span>
+                {activeProjectId ? (
+                  <span className="text-[11px] font-mono text-emerald-600 leading-none" dir="ltr">
+                    Connected to project: {activeProjectId}
+                  </span>
+                ) : (
+                  <span className="text-[11px] font-mono text-amber-600 font-medium leading-none">
+                    Firebase is not configured
+                  </span>
+                )}
+              </div>
             </div>
           </div>
 
