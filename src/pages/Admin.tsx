@@ -23,6 +23,7 @@ import { auth, db, isFirebaseConfigured, activeProjectId } from '../lib/firebase
 import { ADMIN_UID } from '../config';
 import { site, ProjectItem } from '../content/site';
 import { seedDefaultProjects } from '../lib/seed';
+import { removeUndefined } from '../lib/firestoreUtils';
 import { useLanguage } from '../i18n';
 
 // Type definitions for Project Form
@@ -378,6 +379,7 @@ export const Admin: React.FC = () => {
     setProjectFormError(null);
 
     try {
+      const isEditing = Boolean(projectForm.id);
       const docId =
         projectForm.id ||
         projectForm.titleEn
@@ -401,36 +403,52 @@ export const Admin: React.FC = () => {
         .map((t) => t.trim())
         .filter(Boolean);
 
-      await setDoc(
-        projectRef,
-        {
-          order: Number(projectForm.order) || 1,
-          published: Boolean(projectForm.published),
-          category: {
-            en: projectForm.categoryEn.trim(),
-            ar: projectForm.categoryAr.trim(),
-          },
-          title: {
-            en: projectForm.titleEn.trim(),
-            ar: projectForm.titleAr.trim(),
-          },
-          description: {
-            en: projectForm.descriptionEn.trim(),
-            ar: projectForm.descriptionAr.trim(),
-          },
-          features: {
-            en: featuresEn,
-            ar: featuresAr,
-          },
-          tools: tools,
-          imageUrl: projectForm.imageUrl.trim(),
-          liveUrl: projectForm.liveUrl.trim(),
-          caseStudyUrl: projectForm.caseStudyUrl.trim(),
-          updatedAt: serverTimestamp(),
-          createdAt: projectForm.id ? undefined : serverTimestamp(),
+      let needsCreatedAt = !isEditing;
+      if (isEditing) {
+        const existingSnap = await getDoc(projectRef);
+        if (existingSnap.exists()) {
+          const existingData = existingSnap.data();
+          if (!existingData?.createdAt) {
+            needsCreatedAt = true;
+          }
+        } else {
+          needsCreatedAt = true;
+        }
+      }
+
+      const rawPayload: Record<string, unknown> = {
+        order: Number(projectForm.order) || 1,
+        published: Boolean(projectForm.published),
+        category: {
+          en: projectForm.categoryEn.trim(),
+          ar: projectForm.categoryAr.trim(),
         },
-        { merge: true }
-      );
+        title: {
+          en: projectForm.titleEn.trim(),
+          ar: projectForm.titleAr.trim(),
+        },
+        description: {
+          en: projectForm.descriptionEn.trim(),
+          ar: projectForm.descriptionAr.trim(),
+        },
+        features: {
+          en: featuresEn,
+          ar: featuresAr,
+        },
+        tools: tools,
+        imageUrl: (projectForm.imageUrl || '').trim(),
+        liveUrl: (projectForm.liveUrl || '').trim(),
+        caseStudyUrl: (projectForm.caseStudyUrl || '').trim(),
+        updatedAt: serverTimestamp(),
+      };
+
+      if (needsCreatedAt) {
+        rawPayload.createdAt = serverTimestamp();
+      }
+
+      const payload = removeUndefined(rawPayload);
+
+      await setDoc(projectRef, payload, { merge: true });
 
       showFeedback('success', t('admin.savedSuccessfully'));
       setIsEditingProject(false);
@@ -571,19 +589,29 @@ export const Admin: React.FC = () => {
 
     try {
       const docRef = doc(db, 'settings', 'profile');
-      await setDoc(
-        docRef,
-        {
-          photoUrl: profileForm.photoUrl.trim(),
-          links: {
-            mostaql: profileForm.mostaql.trim(),
-            khamsat: profileForm.khamsat.trim(),
-            upwork: profileForm.upwork.trim(),
-          },
-          updatedAt: serverTimestamp(),
+      let needsCreatedAt = false;
+      const existingSnap = await getDoc(docRef);
+      if (!existingSnap.exists() || !existingSnap.data()?.createdAt) {
+        needsCreatedAt = true;
+      }
+
+      const rawPayload: Record<string, unknown> = {
+        photoUrl: (profileForm.photoUrl || '').trim(),
+        links: {
+          mostaql: (profileForm.mostaql || '').trim(),
+          khamsat: (profileForm.khamsat || '').trim(),
+          upwork: (profileForm.upwork || '').trim(),
         },
-        { merge: true }
-      );
+        updatedAt: serverTimestamp(),
+      };
+
+      if (needsCreatedAt) {
+        rawPayload.createdAt = serverTimestamp();
+      }
+
+      const payload = removeUndefined(rawPayload);
+
+      await setDoc(docRef, payload, { merge: true });
       showFeedback('success', t('admin.savedSuccessfully'));
     } catch (err) {
       setProfileError(`${t('admin.somethingWentWrong')}: ${err instanceof Error ? err.message : String(err)}`);

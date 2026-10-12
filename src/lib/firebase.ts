@@ -1,6 +1,6 @@
 import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
 import { getAuth, Auth } from 'firebase/auth';
-import { getFirestore, Firestore } from 'firebase/firestore';
+import { initializeFirestore, Firestore } from 'firebase/firestore';
 import { firebaseConfig as staticConfig } from './firebaseConfig';
 
 const getEnvOrFallback = (envValue: unknown, fallbackValue: string): string => {
@@ -36,7 +36,7 @@ if (isFirebaseConfigured) {
     };
     app = getApps().length === 0 ? initializeApp(config) : getApp();
     auth = getAuth(app);
-    db = getFirestore(app);
+    db = initializeFirestore(app, { ignoreUndefinedProperties: true });
   } catch (error) {
     console.warn('Firebase initialization warning:', error);
     app = null;

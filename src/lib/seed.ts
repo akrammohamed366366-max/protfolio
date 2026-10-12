@@ -1,6 +1,7 @@
 import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { db, isFirebaseConfigured } from './firebase';
 import { site } from '../content/site';
+import { removeUndefined } from './firestoreUtils';
 
 /**
  * Utility to seed default projects and profile settings into Firestore.
@@ -18,41 +19,38 @@ export async function seedDefaultProjects(): Promise<{ success: boolean; message
     // 1. Seed Projects
     for (const project of site.projects.items) {
       const projectRef = doc(db, 'projects', project.id);
-      await setDoc(
-        projectRef,
-        {
-          order: project.order,
-          published: true,
-          category: project.category,
-          title: project.title,
-          description: project.description,
-          features: project.features,
-          tools: project.tools,
-          imageUrl: project.imageUrl || '',
-          liveUrl: project.liveUrl || '',
-          caseStudyUrl: project.caseStudyUrl || '',
-          createdAt: serverTimestamp(),
-          updatedAt: serverTimestamp(),
-        },
-        { merge: true }
-      );
+      const projectPayload = removeUndefined({
+        order: project.order,
+        published: true,
+        category: project.category,
+        title: project.title,
+        description: project.description,
+        features: project.features,
+        tools: project.tools,
+        imageUrl: (project.imageUrl || '').trim(),
+        liveUrl: (project.liveUrl || '').trim(),
+        caseStudyUrl: (project.caseStudyUrl || '').trim(),
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      });
+
+      await setDoc(projectRef, projectPayload, { merge: true });
     }
 
     // 2. Seed Profile Settings
     const profileRef = doc(db, 'settings', 'profile');
-    await setDoc(
-      profileRef,
-      {
-        photoUrl: site.profile.photoUrl || '',
-        links: {
-          mostaql: site.profile.links.mostaql || '',
-          khamsat: site.profile.links.khamsat || '',
-          upwork: site.profile.links.upwork || '',
-        },
-        updatedAt: serverTimestamp(),
+    const profilePayload = removeUndefined({
+      photoUrl: (site.profile.photoUrl || '').trim(),
+      links: {
+        mostaql: (site.profile.links.mostaql || '').trim(),
+        khamsat: (site.profile.links.khamsat || '').trim(),
+        upwork: (site.profile.links.upwork || '').trim(),
       },
-      { merge: true }
-    );
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    });
+
+    await setDoc(profileRef, profilePayload, { merge: true });
 
     return {
       success: true,
